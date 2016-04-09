@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
-url = "http://www.800.cl/?id=1101&id_Ficha=4055"
+url = "http://www.800.cl/?id=1101&id_Ficha=4056"
 # Realizamos la petición a la web
 
 req = requests.get(url)
