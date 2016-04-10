@@ -1,33 +1,5 @@
 <head>
-<style>
-#movList {
-	border-radius: 0px 0px 0px 0px;
-	-moz-border-radius: 0px 0px 0px 0px;
-	-webkit-border-radius: 0px 0px 0px 0px;
-	border: 10px solid #000000;
-	opacity:0;
-	transition: all 1s ease-in-out;
-	z-index:1;
-	position:relative;
-	margin-top:0px;
-}
-#filtros {
-	border-radius: 0px 0px 0px 0px;
-	-moz-border-radius: 0px 0px 0px 0px;
-	-webkit-border-radius: 0px 0px 0px 0px;
-	border: 10px solid #000000;
-	transition: all 3s ease-in-out;
-	opacity:1;
-	z-index:2;
-	position:relative;
-	margin-top:0px;
-}
-#changeButton {
-	position:relative;
-	z-index:3;
-	transition: all 2s ease-in-out;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="css.css" media="screen" />
 <script type="text/javascript">
 function changeDiv() {
 	var filt = document.getElementById("filtros");
@@ -50,17 +22,8 @@ function changeDiv() {
 </head>
 <?php
 require_once 'conn.php';
-function getAllMovies($con) {
-$allpels = pg_query($con, "SELECT * FROM pelicula, horarios, sucursales WHERE pelicula.idpelicula = horarios.idpelicula AND horarios.idsucursal = sucursales.idsucursal");
-$pelist = array();
-while ($row = pg_fetch_row($allpels)) {
-	$hor = explode(" ",$row[4]);
-	$rowi = array('name'=>$row[0],'dur'=>$row[1],'descr'=>$row[2],'hor'=>$hor,'suc'=>$row[5],'cine'=>$row[7],'dir'=>$row[8]);
-	array_push($pelist,$rowi);
-}
-return $pelist;
-}
-$pellist = getAllMovies($con);
+require_once 'funcs.php';
+$pellist = getAllOrderedMovies($con);
 ?>
 <div id="filtros">
 <?php
@@ -81,7 +44,7 @@ while($srow = pg_fetch_row($allsuc)){
 Filtrar
 </button>
 <?php
-echo "<div id='movList'><table><thead><tr><th>Nombre</th><th>Duracion</th><th>Descripcion</th><th>Horarios</th><th>Sucursal</th><th>Cine</th><th>Direccion</th></thead><tbody>";
+echo "<div id='movList'><table><thead><tr><th>Nombre</th><th>Duracion</th><th>Descripcion</th><th>Horarios</th><th>Sucursal</th><th>Cine</th><th>Direccion</th><th>Tipo</th></tr></thead><tbody>";
 foreach ($pellist as $pel){
 	$phor = "";
 	foreach ($pel['hor'] as $hor){
@@ -97,3 +60,53 @@ echo "</tbody></table></div>";
 var inter = "<?php echo $pellist[0]["descr"]; ?>";
 document.getElementById('abc').innerHTML = inter;
 </script>
+<section id="wrapper">
+Click the allow button to let the browser find your location.
+
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+    <article>
+
+    </article>
+<script>
+function success(position) {
+  var mapcanvas = document.createElement('div');
+  mapcanvas.id = 'mapcontainer';
+  mapcanvas.style.height = '400px';
+  mapcanvas.style.width = '600px';
+
+  document.querySelector('article').appendChild(mapcanvas);
+
+  var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+  
+  var options = {
+    zoom: 15,
+    center: coords,
+    mapTypeControl: false,
+    navigationControlOptions: {
+    	style: google.maps.NavigationControlStyle.SMALL
+    },
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  var map = new google.maps.Map(document.getElementById("mapcontainer"), options);
+
+  var marker = new google.maps.Marker({
+      position: coords,
+      map: map,
+      title:"You are here!"
+  });
+}
+
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(success);
+} else {
+  error('Geo Location is not supported');
+}
+
+</script>
+</section>
+<script>
+
+</script>
+<?php
+pg_close($conn);
+?>
