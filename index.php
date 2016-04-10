@@ -50,19 +50,32 @@ function changeDiv() {
 </head>
 <?php
 require_once 'conn.php';
+function getAllMovies($con) {
 $allpels = pg_query($con, "SELECT * FROM pelicula, horarios, sucursales WHERE pelicula.idpelicula = horarios.idpelicula AND horarios.idsucursal = sucursales.idsucursal");
-$pellist = array();
-$allsuc = pg_query($con, "SELECT * FROM sucursales DISTINCT");
+$pelist = array();
 while ($row = pg_fetch_row($allpels)) {
 	$hor = explode(" ",$row[4]);
 	$rowi = array('name'=>$row[0],'dur'=>$row[1],'descr'=>$row[2],'hor'=>$hor,'suc'=>$row[5],'cine'=>$row[7],'dir'=>$row[8]);
-	array_push($pellist,$rowi);
+	array_push($pelist,$rowi);
 }
+return $pelist;
+}
+$pellist = getAllMovies($con);
 ?>
 <div id="filtros">
 <?php
-
+$allsuc = pg_query($con, "SELECT DISTINCT * FROM sucursales");
+while($srow = pg_fetch_row($allsuc)){
+	echo "<input type='checkbox' name='sucheck' value='".$srow[0]."'>".$srow[0]."</input>";
+}
 ?>
+<input type="radio" name="leng" value="">Doblada</input>
+<input type="radio" name="leng" value="">Subtitulada</input>
+<input type="radio" name="form" value="">Normal</input>
+<input type="radio" name="form" value="">3D</input>
+<input type="radio" name="form" value="">4D</input>
+<input type="radio" name="form" value="">Premium</input>
+<input type="radio" name="form" value="">IMAX</input>
 </div>
 <button id="changeButton" onclick="changeDiv();">
 Filtrar
