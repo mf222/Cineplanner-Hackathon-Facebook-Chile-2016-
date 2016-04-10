@@ -1,0 +1,31 @@
+#movList {
+	border-radius: 0px 0px 0px 0px;
+	-moz-border-radius: 0px 0px 0px 0px;
+	-webkit-border-radius: 0px 0px 0px 0px;
+	border: 10px solid #000000;
+	opacity:0;
+	transition: all 1s ease-in-out;
+	z-index:1;
+	position:relative;
+	margin-top:0px;
+}
+#filtros {
+	border-radius: 0px 0px 0px 0px;
+	-moz-border-radius: 0px 0px 0px 0px;
+	-webkit-border-radius: 0px 0px 0px 0px;
+	border: 10px solid #000000;
+	transition: all 3s ease-in-out;
+	opacity:1;
+	z-index:2;
+	position:relative;
+	margin-top:0px;
+}
+#changeButton {
+	position:relative;
+	z-index:3;
+	transition: all 2s ease-in-out;
+}
+#map {
+    width: 400px;
+    height: 400px;
+}
