@@ -20,6 +20,18 @@ function changeDiv() {
 }
 </script>
 </head>
+
+<body>
+<main>
+  <header>
+    <nav class="logo">
+      <a title="Home" href="#">
+      <img src="logo.png" alt="logo-img" class="logo-img">
+      </a>
+    </div>
+  </header>
+
+<div class="separador"></div>
 <?php
 require_once 'conn.php';
 require_once 'funcs.php';
@@ -108,5 +120,7 @@ if (navigator.geolocation) {
 
 </script>
 <?php
-pg_close($conn);
+pg_close($con);
 ?>
+</main>
+</body>

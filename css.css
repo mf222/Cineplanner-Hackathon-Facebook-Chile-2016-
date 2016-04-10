@@ -1,30 +1,85 @@
+html {
+  /* esto hace que siempre este toda la altura disponible */
+  height: 100%;
+}
+body {
+  height: 100%;
+  background-color: #F1EFA5;
+  margin: 0;
+  font-family: verdana;
+}
+
+main {
+  background: #60B99A;
+  min-height: 100%;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.logo{
+	background-color: #554236;
+}
+.logo-img{
+	width: 50%;
+}
+
+
 #movList {
 	border-radius: 0px 0px 0px 0px;
 	-moz-border-radius: 0px 0px 0px 0px;
 	-webkit-border-radius: 0px 0px 0px 0px;
-	border: 10px solid #000000;
+	border: 10px solid #F77825;
+	background-color: #F1EFA5;
 	opacity:0;
 	transition: all 1s ease-in-out;
 	z-index:1;
 	position:relative;
 	margin-top:0px;
 }
+
+.separador{
+	background-color: #F77825;
+	width: 100%;
+	height: 20px;
+
+}
+
 #filtros {
 	border-radius: 0px 0px 0px 0px;
 	-moz-border-radius: 0px 0px 0px 0px;
 	-webkit-border-radius: 0px 0px 0px 0px;
-	border: 10px solid #000000;
 	transition: all 3s ease-in-out;
 	opacity:1;
 	z-index:2;
 	position:relative;
 	margin-top:0px;
+	background-color: #D3CE3D;
+	display: inline-block;
+	padding: 2%;
 }
+
+#filtros input{
+	margin: 1%;
+}
+
 #changeButton {
 	position:relative;
 	z-index:3;
-	transition: all 2s ease-in-out;
+	transition: all 1s ease-in-out;
+	background-color: #F77825;
+	color:#F1EFA5;
+	border: none;
+	padding: 10px;
+	width: 200px;
+	display: inline-block;
+	font-size: 18px;
+	margin-left: 40%;
 }
+
+#changeButton:hover{
+	background-color: #554236;
+}
+
 #map {
     width: 400px;
     height: 400px;
