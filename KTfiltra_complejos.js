@@ -7,3 +7,9 @@ function filtrar_complejo(pels_totales, lis_complejos){
 	function(d){return pels_complejas;}
 	})}
 }
+
+function filtrar_tipo(pels_totales, tipo){
+	var lista_filtradas = [];
+	pels_totales.forEach(function(peli){if(peli.tipo === tipo){lista_filtradas.push(peli);}}),
+	return lista_filtradas;
+}
