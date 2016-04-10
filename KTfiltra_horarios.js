@@ -7,10 +7,14 @@ function transformar_horario(str_horario){
 	})
 	return lis_hor_date;
 }
+
+//Retorna hora de termino de la película(según durac)//
 function calcular_termino(empieza, durac){
 	var termino = empieza + duracion;
 	return termino;
 }
+
+//Retorna True si el horario de la palícula calza con la ventana//
 function comparar(ven_emp, ven_fin, pel_emp, pel_fin){
 	var a = 0;
 	//comparacion empieza:
@@ -21,7 +25,9 @@ function comparar(ven_emp, ven_fin, pel_emp, pel_fin){
 	function(a){if(a===2){return True;}}
 }
 
+//Retorna lista de películas que calzan según horario//
 function filtrar_pels(lista_pels, ven_emp, ven_fin){
+	function(d){if()}
 	var pels_calzan = []
 	lista_pels.forEach(function(peli){
 		peli.horario = transformar_horario(peli.horario);
