@@ -1,0 +1,252 @@
+require 'twitter'
+require 'openssl'
+require 'dandelionapi'
+OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+
+Dandelionapi.configure do |c|
+  c.app_id = "10c4b9200b224d05a87261ecc112230d"
+  c.app_key = "10c4b9200b224d05a87261ecc112230d"
+  c.endpoint = "https://api.dandelion.eu/datatxt/sim/v1/"
+end
+
+#def afinidadFollowing(client, xuser1, xuser2, following1)
+#    user = xuser1
+#    user2 = client.user(xuser2)
+#    puts "request"
+#    following2 = client.friends(user2.screen_name)
+#    puts "request"
+#    contador = 0
+#    for friend in following1
+#        for friend2 in following2
+#            if friend.id == friend2.id
+#                contador = contador +1
+#            end
+#        end
+#    end
+#    #puts contador
+#    return [contador,following2]
+#end
+
+def afinidadFollowingVsLista(client, following1, following2) #Asumo listas de strings con nombres de usuario
+	contador = 0
+	for friend in following1
+		for friend2 in following2
+			if(friend == friend2)
+				contador = contador +1
+			end
+		end
+	end
+	return contador
+end
+
+def afinidadRetweetVsLista(client, tweets1, tweets2)
+	contador = 0
+    for tweet1 in tweets1
+    	for tweet2 in tweets2
+    		if tweet1.retweet_count > 0 && tweet2.retweet_count >0
+    			if tweet1.text == tweet2.text
+    				contador = contador + 1
+    			end
+    		end
+        end
+    end
+    return contador
+end
+
+#def afinidadRetweet(client, xuser1, xuser2, tweets1)
+#    user = xuser1
+#    user2 = client.user(xuser2)
+#    puts "request"
+#    tweets2 = client.user_timeline(user2.screen_name)
+#    puts "request"
+#    contador = 0
+#    for tweet1 in tweets1
+#    	for tweet2 in tweets2
+#    		if tweet1.retweet_count > 0 && tweet2.retweet_count >0
+#    			if tweet1.text == tweet2.text
+#    				contador = contador + 1
+#    			end
+#    		end
+#        end
+#    end
+#    #puts contador
+#    return contador
+#end
+def afinidadDescripcion(client,user1,user2) #Recibe usuarios como String.
+	element = Dandelionapi::TextSimilarity.new
+	usuario1 = client.user(user1)
+	usuario2 = client.user(user2)
+	response = element.analyze(text1: usuario1.description, text2: usuario2.description)
+	if(response["similarity"])
+	return response[:similarity]
+	end
+	return -1
+end
+
+def afinidadTotals(client, user, listadelistas) #User es string #Lista contiene una lista de nombres a comparar. El primer nombre corresponde al "dueño" de la lista.
+	amigos = client.friends(user)
+	listaNombres = amigosToNameList(amigos)
+	listaPuntajesFollow = []
+	listaPuntajesRetweet =[]
+	listaPuntajesDescripciones = []
+	for lista in listadelistas #Calculo puntajes Follow
+		listaPuntajesFollow.push(afinidadFollowingVsLista(client, listaNombres, lista))
+		user2 = lista[0]  #Calculo puntajes Retweets
+		tweets1 = client.user_timeline(user)
+		tweets2 = client.user_timeline(user2)
+		listaPuntajesRetweet.push(afinidadRetweetVsLista(client,tweets1, tweets2))
+		listaPuntajesDescripciones.push(afinidadDescripcion(client,user,user2))
+	end
+	listaPuntajesFollowNormalizados = []
+	listaPuntajesRetweetNormalizados = []
+	listaPuntajesDescripcionesNormalizados = []
+	maximoFollow = 0 #Calculo de puntajes máximos
+	for puntajeFollow in listaPuntajesFollow
+		if puntajeFollow > maximoFollow
+			maximoFollow = puntajeFollow
+		end
+	end
+	maximoRetweet = 0
+	for puntajeRetweet in listaPuntajesRetweet
+		if puntajeRetweet > maximoRetweet
+			maximoRetweet = puntajeRetweet
+		end
+	end
+	maximoDescripciones = 0
+	for puntajeDescripcion in listaPuntajesDescripciones
+		if puntajeDescripcion > maximoDescripciones
+			maximoDescripciones = puntajeDescripcion
+		end
+	end
+	puts 'Follow ' + maximoFollow.to_s
+	puts 'Retweet' + maximoRetweet.to_s
+	#Normalización de puntajes con respecto al máximo
+	for puntajeFollow in listaPuntajesFollow
+		listaPuntajesFollowNormalizados.push((puntajeFollow*100/maximoFollow))
+	end
+	for puntajeRetweet in listaPuntajesRetweet
+		listaPuntajesRetweetNormalizados.push((puntajeRetweet*100/maximoRetweet))
+	end
+
+	for puntajeDescripcion in listaPuntajesDescripciones
+		if listaPuntajesDescripciones == -1
+			listaPuntajesDescripcionesNormalizados.push(-1)
+		elsif(maximoDescripciones == 0)
+		listaPuntajesDescripcionesNormalizados.push(0)
+		else
+		listaPuntajesDescripcionesNormalizados.push((puntajeDescripcion*100/maximoDescripciones))
+
+		end
+	end
+
+
+	listaPuntajesFinales = []
+	#Puntajes finales. 70% followers, 30% retweets
+	for i in 0..listaPuntajesRetweetNormalizados.size-1
+		if listaPuntajesDescripciones[i] == -1
+			listaPuntajesFinales.push(listaPuntajesRetweetNormalizados[i]*0.7 + listaPuntajesFollowNormalizados[i]*0.3)
+			puts (listaPuntajesRetweetNormalizados[i]*0.7 + listaPuntajesFollowNormalizados[i]*0.3)
+		else
+			listaPuntajesFinales.push(listaPuntajesRetweetNormalizados[i]*0.6 + listaPuntajesFollowNormalizados[i]*0.3 + listaPuntajesDescripciones[i]*0.1)
+		end
+	end
+	return listaPuntajesFinales
+end
+
+def amigosToNameList(listadeamigos)
+	listadenombres = []
+	for amigo in listadeamigos
+		listadenombres.push(amigo.screen_name)
+	end
+	return listadenombres
+end
+
+
+
+#def afinidadTotal(client,user)
+   # amigosoriginal = client.friends(user.screen_name)
+   # puts "request"
+  #  amigos = client.friends(user.screen_name)
+ #   puts "request"
+ #   totalFollowing = 0
+ #   for amigo in amigos
+ #   	totalFollowing = totalFollowing +1
+ #   end
+ #   candidatos = []
+ #   for i in 0..0
+ #       random_friends = []
+ #       for i in 0..1
+ #           seleccionado = amigos.to_a.sample(1)
+ #           resultadosFollowing = afinidadFollowing(client,user,seleccionado,amigosoriginal)
+ #           random_friends.push([seleccionado, resultadosFollowing])
+ #           candidatos.push([seleccionado, resultadosFollowing])
+ #       end
+ #       maximo = 0
+ #       maxfriend = 0
+ #       for friend in random_friends
+#            if(friend[1][0] > maximo)
+#                maximofriend = friend
+#                maximo = friend[1][0]
+#            end
+#    	end
+#    	amigos = friend[1][1]
+#    end
+#    maximo = -1
+#    for candidato in candidatos
+#        if(candidato[1][0] > maximo)
+#            maximo = candidato[1][0]
+#        end
+#    end
+#    puntajesFinales = []
+#    for candidato in candidatos
+#        puntajesFinales.push(candidato[1][0]*100/maximo) #puntajes normalizados con respecto al máximo
+#        puts (candidato[1][0]*100/maximo)
+#    end
+#end
+
+if 1==1
+client = Twitter::REST::Client.new do |config|
+config.consumer_key        = "BaWKowo6hETLeZSutmoZessuJ"
+config.consumer_secret     = "AwqU0AqfomNZxUttMVdHSvmFJOyWpb7IKOrsfAJyDzFbKj36At"
+config.access_token        = "748330526356889601-tII5YHdlNna0bqpFTu3lqLmBQVUM7co"
+config.access_token_secret = "zD9ykL4jFFn8g3tjPHsP8zMtN7bUqyyGmSPue1CbIPpuq"
+end
+end
+
+
+if 1==2
+client = Twitter::REST::Client.new do |config|
+config.consumer_key        = "5Qo0w8mHnh9Pd9dwClw0329gs"
+config.consumer_secret     = "0Fn3ASiwWNutZUyteHBzSii5Ljmb8wcUACN8x2BL9tKcRP9Duk"
+config.access_token        = "4708325147-o5ZjcQ8iGlRqCvmIBGAJ9fsyCGiVzX3Vj6zVoQR"
+config.access_token_secret = "K6gKuDRTRRBAKcbhiZFyB21ztM96jpx9j9bvZGitlxqRk"
+end
+end
+
+if 1==2
+client = Twitter::REST::Client.new do |config|
+config.consumer_key        = "Yn1lz1aMmeSR4UIF6WEKIxmk0"
+config.consumer_secret     = "3Zlp1Z4FuPsUFx1DCgCwja5Q0UiJAWU1Lhbrb9ouVLZrqhfRBW"
+config.access_token        = "748262858954158080-2Hhe1qNcERoziwssjnw8fPZbMyEWHgv"
+config.access_token_secret = "wch4GpgAeIBAcHoxvTPofeR6Lpi6ZqqlqWfCdIahpxIEx"
+end
+end
+
+
+
+if 1 == 1
+	listatest = [['lolomanolo69', 'MrPatiwi', 'alanezz'], ['MrPatiwi', 'alanezz', 'APIKEYPLZx', 'sonic_hedgehog'], ['APIKEYPLSx', 'sonic_hedgehog', 'AlmaMaterApp']]
+#	afinidadTotals(client,'mferser',listatest)
+	afinidadTotals(client, 'mferser', listatest)
+end
+
+
+#afinidadDescripcion(client,'mferser','MrPatiwi')
+#puts "request"
+#user = client.user('mferser')
+
+#tweets = client.user_timeline("mferser")
+#afinidadFollowing(client, user, 'lolomanolo69', following1)
+#afinidadRetweet(client, user, 'lolomanolo69', tweets)
+
+#afinidadTotal(client,user)
